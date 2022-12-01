@@ -1,8 +1,7 @@
-use crate::read_input;
 use itertools::Itertools;
 
-pub fn solve() {
-    let input: Vec<Vec<i32>> = read_input(1, false)
+pub fn solve(input: String) {
+    let input: Vec<Vec<i32>> = input
         .split("\n\n")
         .map(|s| s.lines().map(|l| l.parse::<i32>().unwrap()).collect())
         .collect();
