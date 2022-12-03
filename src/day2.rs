@@ -1,25 +1,39 @@
-use std::{cmp::Ordering, ops::Add, str::FromStr};
+use std::str::FromStr;
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy)]
 enum Move {
     ROCK = 1,
     PAPER = 2,
     SCISSORS = 3,
 }
 
-impl PartialOrd for Move {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(match (self, other) {
-            (Move::ROCK, Move::ROCK) => Ordering::Equal,
-            (Move::ROCK, Move::PAPER) => Ordering::Less,
-            (Move::ROCK, Move::SCISSORS) => Ordering::Greater,
-            (Move::PAPER, Move::ROCK) => Ordering::Greater,
-            (Move::PAPER, Move::PAPER) => Ordering::Equal,
-            (Move::PAPER, Move::SCISSORS) => Ordering::Less,
-            (Move::SCISSORS, Move::ROCK) => Ordering::Less,
-            (Move::SCISSORS, Move::PAPER) => Ordering::Greater,
-            (Move::SCISSORS, Move::SCISSORS) => Ordering::Equal,
-        })
+impl Move {
+    fn against(&self, other: Move) -> Strategy {
+        match (self, other) {
+            (Move::ROCK, Move::ROCK) => Strategy::DRAW,
+            (Move::ROCK, Move::PAPER) => Strategy::LOSE,
+            (Move::ROCK, Move::SCISSORS) => Strategy::WIN,
+            (Move::PAPER, Move::ROCK) => Strategy::WIN,
+            (Move::PAPER, Move::PAPER) => Strategy::DRAW,
+            (Move::PAPER, Move::SCISSORS) => Strategy::LOSE,
+            (Move::SCISSORS, Move::ROCK) => Strategy::LOSE,
+            (Move::SCISSORS, Move::PAPER) => Strategy::WIN,
+            (Move::SCISSORS, Move::SCISSORS) => Strategy::DRAW,
+        }
+    }
+
+    fn counter_move(&self, strategy: Strategy) -> Move {
+        match (self, strategy) {
+            (Move::ROCK, Strategy::WIN) => Move::PAPER,
+            (Move::ROCK, Strategy::DRAW) => Move::ROCK,
+            (Move::ROCK, Strategy::LOSE) => Move::SCISSORS,
+            (Move::PAPER, Strategy::WIN) => Move::SCISSORS,
+            (Move::PAPER, Strategy::DRAW) => Move::PAPER,
+            (Move::PAPER, Strategy::LOSE) => Move::ROCK,
+            (Move::SCISSORS, Strategy::WIN) => Move::ROCK,
+            (Move::SCISSORS, Strategy::DRAW) => Move::SCISSORS,
+            (Move::SCISSORS, Strategy::LOSE) => Move::PAPER,
+        }
     }
 }
 
@@ -36,40 +50,11 @@ impl FromStr for Move {
     }
 }
 
-impl Add<Strategy> for Move {
-    type Output = Move;
-
-    fn add(self, rhs: Strategy) -> Self::Output {
-        match (self, rhs) {
-            (Move::ROCK, Strategy::WIN) => Move::PAPER,
-            (Move::ROCK, Strategy::DRAW) => Move::ROCK,
-            (Move::ROCK, Strategy::LOSE) => Move::SCISSORS,
-            (Move::PAPER, Strategy::WIN) => Move::SCISSORS,
-            (Move::PAPER, Strategy::DRAW) => Move::PAPER,
-            (Move::PAPER, Strategy::LOSE) => Move::ROCK,
-            (Move::SCISSORS, Strategy::WIN) => Move::ROCK,
-            (Move::SCISSORS, Strategy::DRAW) => Move::SCISSORS,
-            (Move::SCISSORS, Strategy::LOSE) => Move::PAPER,
-        }
-    }
-}
-
+#[derive(Clone, Copy)]
 enum Strategy {
     WIN = 6,
     DRAW = 3,
     LOSE = 0,
-}
-
-impl From<(Move, Move)> for Strategy {
-    fn from(m: (Move, Move)) -> Self {
-        if m.0 < m.1 {
-            Self::WIN
-        } else if m.0 > m.1 {
-            Self::LOSE
-        } else {
-            Self::DRAW
-        }
-    }
 }
 
 impl FromStr for Strategy {
@@ -86,29 +71,23 @@ impl FromStr for Strategy {
 }
 
 pub fn solve(input: String) -> (String, String) {
+    let input: Vec<(_, _)> = input.lines().map(|l| l.split_once(" ").unwrap()).collect();
+
     let score_1: i32 = input
-        .lines()
-        .map(|l| {
-            l.split_once(" ")
-                .map(|p| (Move::from_str(p.0).unwrap(), Move::from_str(p.1).unwrap()))
-                .unwrap()
-        })
-        .map(|r| (r.1 as i32) + (Strategy::from(r) as i32))
+        .iter()
+        .map(|p| (p.0.parse::<Move>().unwrap(), p.1.parse::<Move>().unwrap()))
+        .map(|r| (r.1 as i32) + (r.1.against(r.0) as i32))
         .sum();
 
     let score_2: i32 = input
-        .lines()
-        .map(|l| {
-            l.split_once(" ")
-                .map(|p| {
-                    (
-                        Move::from_str(p.0).unwrap(),
-                        Strategy::from_str(p.1).unwrap(),
-                    )
-                })
-                .unwrap()
+        .iter()
+        .map(|p| {
+            (
+                p.0.parse::<Move>().unwrap(),
+                p.1.parse::<Strategy>().unwrap(),
+            )
         })
-        .map(|p| (p.1 as i32) + ((p.0 + p.1) as i32))
+        .map(|p| (p.1 as i32) + (p.0.counter_move(p.1) as i32))
         .sum();
 
     (
