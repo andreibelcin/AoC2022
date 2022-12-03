@@ -5,8 +5,9 @@ use std::fs;
 
 mod day1;
 mod day2;
+mod day3;
 
-static SOLUTIONS: &[fn(String) -> (String, String)] = &[day1::solve, day2::solve];
+static SOLUTIONS: &[fn(String) -> (String, String)] = &[day1::solve, day2::solve, day3::solve];
 
 #[derive(Parser, Debug)]
 struct CLI {
