@@ -7,9 +7,15 @@ mod day1;
 mod day2;
 mod day3;
 mod day4;
+mod day5;
 
-static SOLUTIONS: &[fn(String) -> (String, String)] =
-    &[day1::solve, day2::solve, day3::solve, day4::solve];
+static SOLUTIONS: &[fn(String) -> (String, String)] = &[
+    day1::solve,
+    day2::solve,
+    day3::solve,
+    day4::solve,
+    day5::solve,
+];
 
 #[derive(Parser, Debug)]
 struct CLI {
