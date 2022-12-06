@@ -27,7 +27,10 @@ impl FromStr for Instruction {
 
 fn process_stack_input(stack_input: &str) -> Vec<Stack> {
     let mut stack_lines = stack_input.lines().rev();
-    let stack_count = stack_lines.next().unwrap().replace(" ", "").len();
+    let stack_count = Regex::new(r"\d+")
+        .unwrap()
+        .captures_iter(stack_lines.next().unwrap())
+        .count();
     let stack_regex = Regex::new((0..stack_count).map(|_| r"(...)").join(" ").as_str()).unwrap();
 
     let mut stacks: Vec<Stack> = (0..stack_count).map(|_| Vec::new()).collect();
