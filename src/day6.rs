@@ -58,3 +58,23 @@ pub fn solve(input: String) -> (String, String) {
         format!("Number of characters processed for message: {result2}"),
     )
 }
+
+/// This is a solution I saw on the Kotlin AoC livestream, which solves the problem in O(n) time,
+/// as oppose to O(n*m) time (for n = input length, m = window size). I didn't want to use it as
+/// my final solution, since I didn't come up with it myself, but I did want to implement it :)
+fn _solve_optimal(input: &String, window_size: usize) -> usize {
+    let mut last_seen_index = [0; 26];
+    let mut most_recent_duplicate_index = 0;
+    for (i, c) in input.chars().enumerate() {
+        let ci = c as usize - 'a' as usize;
+        let last_seen_c_index = last_seen_index[ci];
+        last_seen_index[ci] = i;
+        if last_seen_c_index > most_recent_duplicate_index {
+            most_recent_duplicate_index = last_seen_c_index
+        }
+        if i - most_recent_duplicate_index >= window_size {
+            return i + 1;
+        }
+    }
+    0
+}
