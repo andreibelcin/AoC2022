@@ -113,3 +113,88 @@ pub fn solve(input: String) -> (String, String) {
         format!("Directory size to be deleted: {result2}"),
     )
 }
+
+#[allow(dead_code)]
+mod FileSystemMethod {
+    use std::{
+        cell::RefCell,
+        collections::HashMap,
+        rc::{Rc, Weak},
+    };
+
+    #[derive(Debug)]
+    enum FileSystem {
+        File(File),
+        Dir(Rc<Dir>),
+    }
+
+    #[derive(Debug)]
+    struct File {
+        size: u32,
+    }
+
+    #[derive(Debug)]
+    struct Dir {
+        parent: Option<Weak<Dir>>,
+        content: RefCell<HashMap<String, FileSystem>>,
+    }
+
+    impl FileSystem {
+        fn from_instructions(instructions: Vec<&str>) -> FileSystem {
+            let root = Rc::new(Dir {
+                parent: None,
+                content: RefCell::new(HashMap::new()),
+            });
+
+            let mut current_dir = root.clone();
+            for instruction in instructions {
+                match &instruction[..2] {
+                    "cd" => {
+                        current_dir = match &instruction[3..] {
+                            "/" => root.clone(),
+                            ".." => current_dir.parent.as_ref().unwrap().upgrade().unwrap(),
+                            dir_name => {
+                                if let FileSystem::Dir(dir) =
+                                    &current_dir.content.borrow()[dir_name]
+                                {
+                                    dir.clone()
+                                } else {
+                                    panic!("Not a directory: {dir_name}")
+                                }
+                            }
+                        }
+                    }
+                    "ls" => {
+                        for line in instruction[3..].lines() {
+                            match line.split_once(" ").unwrap() {
+                                ("dir", dir_name) => current_dir.content.borrow_mut().insert(
+                                    dir_name.to_owned(),
+                                    FileSystem::Dir(Rc::new(Dir {
+                                        parent: Some(Rc::downgrade(&current_dir)),
+                                        content: RefCell::new(HashMap::new()),
+                                    })),
+                                ),
+                                (size, file_name) => current_dir.content.borrow_mut().insert(
+                                    file_name.to_owned(),
+                                    FileSystem::File(File {
+                                        size: size.parse().unwrap(),
+                                    }),
+                                ),
+                            };
+                        }
+                    }
+                    _ => panic!("Unknown instruction: {instruction}"),
+                }
+            }
+
+            FileSystem::Dir(root.clone())
+        }
+
+        fn size(&self) -> u32 {
+            match self {
+                FileSystem::File(file) => file.size,
+                FileSystem::Dir(dir) => dir.content.borrow().values().map(|v| v.size()).sum(),
+            }
+        }
+    }
+}
