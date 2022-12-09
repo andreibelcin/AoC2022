@@ -11,6 +11,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 static SOLUTIONS: &[fn(String) -> (String, String)] = &[
     day1::solve,
@@ -21,6 +22,7 @@ static SOLUTIONS: &[fn(String) -> (String, String)] = &[
     day6::solve,
     day7::solve,
     day8::solve,
+    day9::solve,
 ];
 
 #[derive(Parser, Debug)]
