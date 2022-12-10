@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use itertools::Itertools;
 use regex::Regex;
 
@@ -9,20 +7,6 @@ struct Instruction {
     count: usize,
     from: usize,
     to: usize,
-}
-
-impl FromStr for Instruction {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let instruction_regex: Regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
-        let groups = instruction_regex.captures(s).unwrap();
-        Ok(Self {
-            count: groups.get(1).unwrap().as_str().parse().unwrap(),
-            from: groups.get(2).unwrap().as_str().parse::<usize>().unwrap() - 1,
-            to: groups.get(3).unwrap().as_str().parse::<usize>().unwrap() - 1,
-        })
-    }
 }
 
 fn process_stack_input(stack_input: &str) -> Vec<Stack> {
@@ -47,14 +31,23 @@ fn process_stack_input(stack_input: &str) -> Vec<Stack> {
     stacks
 }
 
+fn process_instruction_input(instruction_input: &str) -> Vec<Instruction> {
+    let instruction_regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
+    instruction_regex
+        .captures_iter(instruction_input)
+        .map(|capture| Instruction {
+            count: capture.get(1).unwrap().as_str().parse().unwrap(),
+            from: capture.get(2).unwrap().as_str().parse::<usize>().unwrap() - 1,
+            to: capture.get(3).unwrap().as_str().parse::<usize>().unwrap() - 1,
+        })
+        .collect_vec()
+}
+
 fn process_input(input: String) -> (Vec<Stack>, Vec<Instruction>) {
     let (stack_input, instruction_input) = input.split_once("\n\n").unwrap();
 
     let stacks = process_stack_input(stack_input);
-    let instructions = instruction_input
-        .lines()
-        .map(|l| l.parse::<Instruction>().unwrap())
-        .collect();
+    let instructions = process_instruction_input(instruction_input);
 
     (stacks, instructions)
 }
