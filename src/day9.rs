@@ -92,7 +92,6 @@ fn get_tail_positions_count(mut rope: Rope, instructions: &Vec<Instruction>) -> 
     for instruction in instructions {
         tail_positions.extend(rope.follow_instruction(instruction));
     }
-    println!("{rope:?}");
     tail_positions.len()
 }
 
