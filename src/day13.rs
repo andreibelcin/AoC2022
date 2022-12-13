@@ -84,16 +84,21 @@ pub fn solve(input: String) -> (String, String) {
 
     let packet_2 = Packet::List(vec![Packet::List(vec![Packet::Val(2)])]);
     let packet_6 = Packet::List(vec![Packet::List(vec![Packet::Val(6)])]);
-    let sorted_packets = packet_pairs
-        .iter()
-        .flat_map(|p| vec![&p.0, &p.1])
-        .chain(vec![&packet_2, &packet_6])
-        .sorted()
-        .collect_vec();
 
-    let packet_2_idx = sorted_packets.iter().position(|p| *p == &packet_2).unwrap() + 1;
-    let packet_6_idx = sorted_packets.iter().position(|p| *p == &packet_6).unwrap() + 1;
-    let result2 = packet_2_idx * packet_6_idx;
+    let packet_2_count = packet_pairs
+        .iter()
+        .flat_map(|pp| vec![&pp.0, &pp.1])
+        .filter(|p| *p < &packet_2)
+        .count()
+        + 1;
+    let packet_6_count = packet_pairs
+        .iter()
+        .flat_map(|pp| vec![&pp.0, &pp.1])
+        .filter(|p| *p < &packet_6)
+        .count()
+        + 2;
+
+    let result2 = packet_2_count * packet_6_count;
 
     (
         format!("Sum of pairs in the right order: {result1}"),
